@@ -3,18 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Menu, ShoppingCart, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { CART_UPDATED_EVENT, getCartCount } from "@/lib/cart";
 import { getCustomerToken } from "@/lib/auth/storage";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +23,12 @@ function NavLink({
   href,
   label,
   onClick,
+  className,
 }: {
   href: string;
   label: string;
   onClick?: () => void;
+  className?: string;
 }) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -42,9 +39,8 @@ function NavLink({
       onClick={onClick}
       className={cn(
         "text-sm font-medium transition-colors",
-        active
-          ? "text-primary"
-          : "text-foreground/80 hover:text-primary",
+        active ? "text-primary" : "text-foreground/80 hover:text-primary",
+        className,
       )}
     >
       {label}
@@ -52,19 +48,53 @@ function NavLink({
   );
 }
 
-export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
+export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartCount, setCartCount] = useState(cartCountProp ?? 0);
 
   useEffect(() => {
     setIsLoggedIn(Boolean(getCustomerToken()));
   }, []);
 
+  useEffect(() => {
+    if (typeof cartCountProp === "number") {
+      setCartCount(cartCountProp);
+      return;
+    }
+    const sync = () => setCartCount(getCartCount());
+    sync();
+    window.addEventListener(CART_UPDATED_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(CART_UPDATED_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, [cartCountProp]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   const links = navLinks.filter((link) => !link.authOnly || isLoggedIn);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/95 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
+      <Container className="relative z-20 flex h-16 items-center justify-between gap-4 bg-background/95">
         <Logo />
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -93,33 +123,78 @@ export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Button variant="outline" size="icon" asChild>
+          <Button variant="outline" size="icon" asChild className="relative">
             <Link href="/cart" aria-label="Cart">
               <ShoppingCart className="size-4" />
+              {cartCount > 0 ? (
+                <Badge className="absolute -top-1.5 -right-1.5 h-4 min-w-4 rounded-full px-1 text-[10px]">
+                  {cartCount}
+                </Badge>
+              ) : null}
             </Link>
           </Button>
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Open menu">
-                {open ? <X className="size-4" /> : <Menu className="size-4" />}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="bg-background">
-              <SheetHeader>
-                <SheetTitle className="font-heading text-primary">
-                  Menu
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-8 flex flex-col gap-5 px-1">
-                {links.map((link) => (
-                  <NavLink
-                    key={link.href}
-                    href={link.href}
-                    label={link.label}
-                    onClick={() => setOpen(false)}
-                  />
-                ))}
-                <Button asChild className="mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            aria-controls="mobile-nav-panel"
+            onClick={() => setOpen((prev) => !prev)}
+          >
+            {open ? <X className="size-4" /> : <Menu className="size-4" />}
+          </Button>
+        </div>
+      </Container>
+
+      <AnimatePresence>
+        {open ? (
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close menu"
+              className="fixed inset-x-0 top-16 bottom-0 z-10 bg-foreground/35 backdrop-blur-[2px] md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              id="mobile-nav-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Mobile navigation"
+              className="absolute inset-x-0 top-full z-20 border-b border-border bg-background shadow-[0_24px_48px_-28px_rgba(34,34,34,0.45)] md:hidden"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            >
+              <Container className="py-5">
+                <nav className="flex flex-col gap-1">
+                  {links.map((link) => {
+                    const active =
+                      pathname === link.href ||
+                      pathname.startsWith(`${link.href}/`);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                          "rounded-xl px-3 py-3 text-base font-medium transition-colors",
+                          active
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground hover:bg-muted",
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+                <Button asChild className="mt-4 w-full" size="lg">
                   <Link
                     href={isLoggedIn ? "/orders" : "/login"}
                     onClick={() => setOpen(false)}
@@ -127,11 +202,11 @@ export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
                     {isLoggedIn ? "Account" : "Login"}
                   </Link>
                 </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </Container>
+              </Container>
+            </motion.div>
+          </>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }

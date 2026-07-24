@@ -52,6 +52,16 @@ export function getMeals(params: PublicMealsQuery = {}) {
   ).then((result) => normalizePaginated<Meal>(result, { page, limit }));
 }
 
+/** Single available meal by slug. Throws ApiError 404 when missing. */
+export function getMealBySlug(slug: string) {
+  return apiFetch<Meal>(`/meals/${encodeURIComponent(slug)}`);
+}
+
+/** Up to 4 "You may also like" meals — same category first, then featured/best-sellers. */
+export function getRelatedMeals(slug: string) {
+  return apiFetch<Meal[]>(`/meals/${encodeURIComponent(slug)}/related`);
+}
+
 export function getFeaturedMeals() {
   return apiFetch<Meal[]>("/meals/featured");
 }

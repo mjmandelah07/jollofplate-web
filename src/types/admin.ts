@@ -24,6 +24,15 @@ export type OrderCustomer = {
   phone?: string | null;
 };
 
+export type DeliveryAddressInput = {
+  line1: string;
+  line2?: string;
+  city: string;
+  state?: string;
+  landmark?: string;
+  phone?: string;
+};
+
 export type Order = {
   id: string;
   orderNumber: string;
@@ -32,6 +41,12 @@ export type Order = {
   subtotal?: number;
   deliveryFee?: number;
   total: number;
+  deliveryLine1?: string | null;
+  deliveryLine2?: string | null;
+  deliveryCity?: string | null;
+  deliveryState?: string | null;
+  deliveryLandmark?: string | null;
+  deliveryPhone?: string | null;
   paidAt?: string | null;
   createdAt: string;
   updatedAt?: string;

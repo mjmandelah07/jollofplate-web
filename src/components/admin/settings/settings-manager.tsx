@@ -18,7 +18,7 @@ import { ApiError } from "@/lib/api/client";
 import {
   emptyBusinessHours,
   normalizeBusinessHours,
-  toLegacyBusinessHours,
+  toApiBusinessHours,
 } from "@/lib/business-hours";
 import type { StructuredBusinessHours } from "@/types/admin";
 
@@ -124,7 +124,7 @@ export function SettingsManager() {
         contactNumber: form.contactNumber.trim(),
         address: form.address.trim(),
         deliveryFee: Math.max(0, Math.round(Number(form.deliveryFee) || 0)),
-        businessHours: toLegacyBusinessHours(form.hours),
+        businessHours: toApiBusinessHours(form.hours),
         socialLinks: {
           instagram: form.instagram.trim() || undefined,
           facebook: form.facebook.trim() || undefined,
