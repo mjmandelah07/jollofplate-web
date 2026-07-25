@@ -43,18 +43,27 @@ export type AuthUser = {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string | null;
   role: "customer" | "admin";
+  emailVerified?: boolean;
 };
 
 /** The API nests the profile under `admin`, `customer`, or `user` depending on the endpoint. */
 export type RawAuthResponse = {
-  accessToken: string;
+  accessToken?: string;
   admin?: AuthUser;
   customer?: AuthUser;
   user?: AuthUser;
+  message?: string;
 };
 
 export type AuthResponse = {
   accessToken: string;
   user: AuthUser;
+  message?: string;
+};
+
+export type VerifyEmailResponse = {
+  message: string;
+  customer: AuthUser;
 };

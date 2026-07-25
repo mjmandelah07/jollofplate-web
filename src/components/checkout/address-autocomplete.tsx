@@ -74,13 +74,17 @@ function parsePhotonFeature(feature: PhotonFeature): Suggestion {
   };
 }
 
+/** Nigeria bounding box: minLon,minLat,maxLon,maxLat */
+const NIGERIA_BBOX = "2.6,4.2,14.7,13.9";
+
 async function searchAddresses(query: string, signal: AbortSignal) {
   const params = new URLSearchParams({
     q: query,
-    limit: "6",
+    limit: "8",
     lang: "en",
     lat: String(LAGOS_CENTER.lat),
     lon: String(LAGOS_CENTER.lng),
+    bbox: NIGERIA_BBOX,
   });
 
   // Photon (Komoot) — free OpenStreetMap geocoder, no API key.
@@ -96,13 +100,14 @@ async function searchAddresses(query: string, signal: AbortSignal) {
   const data = (await response.json()) as { features?: PhotonFeature[] };
   const features = Array.isArray(data.features) ? data.features : [];
 
-  // Prefer Nigeria results when Photon returns mixed countries.
-  const nigeria = features.filter((feature) => {
-    const country = feature.properties.country?.toLowerCase() || "";
-    return !country || country.includes("nigeria");
-  });
-
-  return (nigeria.length ? nigeria : features).map(parsePhotonFeature);
+  // Nigeria only — never show foreign addresses for a Lagos delivery.
+  return features
+    .filter((feature) => {
+      const country = feature.properties.country?.toLowerCase() || "";
+      return !country || country.includes("nigeria");
+    })
+    .slice(0, 6)
+    .map(parsePhotonFeature);
 }
 
 export function AddressLineAutocomplete({
@@ -135,7 +140,13 @@ export function AddressLineAutocomplete({
   }, []);
 
   useEffect(() => {
-    const query = value.trim();
+    const raw = value.trim();
+    // Photon often finds nothing when a house number leads the query
+    // ("132 Adeniji"). Search the street only; re-attach the number on select.
+    const houseNumber = raw.match(/^(\d+[a-zA-Z]?)\s+(.{3,})$/);
+    const query = houseNumber ? houseNumber[2] : raw;
+    const prefix = houseNumber ? houseNumber[1] : "";
+
     if (query.length < 3) {
       setSuggestions([]);
       setLoading(false);
@@ -147,7 +158,17 @@ export function AddressLineAutocomplete({
       setLoading(true);
       void searchAddresses(query, controller.signal)
         .then((results) => {
-          setSuggestions(results);
+          const withNumber = prefix
+            ? results.map((item) => ({
+                ...item,
+                primary: `${prefix} ${item.primary}`,
+                parsed: {
+                  ...item.parsed,
+                  line1: `${prefix} ${item.parsed.line1}`,
+                },
+              }))
+            : results;
+          setSuggestions(withNumber);
           setOpen(true);
         })
         .catch((error: unknown) => {

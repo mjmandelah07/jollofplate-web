@@ -10,7 +10,10 @@ import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CART_UPDATED_EVENT, getCartCount } from "@/lib/cart";
-import { getCustomerToken } from "@/lib/auth/storage";
+import {
+  CUSTOMER_SESSION_EVENT,
+  getCustomerToken,
+} from "@/lib/auth/storage";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -55,7 +58,14 @@ export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number })
   const [cartCount, setCartCount] = useState(cartCountProp ?? 0);
 
   useEffect(() => {
-    setIsLoggedIn(Boolean(getCustomerToken()));
+    const sync = () => setIsLoggedIn(Boolean(getCustomerToken()));
+    sync();
+    window.addEventListener(CUSTOMER_SESSION_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(CUSTOMER_SESSION_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   useEffect(() => {

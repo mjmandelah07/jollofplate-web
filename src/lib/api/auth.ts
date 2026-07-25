@@ -1,5 +1,10 @@
 import { apiFetch } from "@/lib/api/client";
-import type { AuthResponse, AuthUser, RawAuthResponse } from "@/types";
+import type {
+  AuthResponse,
+  AuthUser,
+  RawAuthResponse,
+  VerifyEmailResponse,
+} from "@/types";
 
 function normalize(
   raw: RawAuthResponse,
@@ -8,8 +13,11 @@ function normalize(
   const profile = raw.admin ?? raw.customer ?? raw.user;
 
   return {
-    accessToken: raw.accessToken,
-    user: profile ?? { id: "", email: "", role: fallbackRole },
+    accessToken: raw.accessToken ?? "",
+    user: profile
+      ? { ...profile, role: profile.role || fallbackRole }
+      : { id: "", email: "", role: fallbackRole },
+    ...(raw.message ? { message: raw.message } : {}),
   };
 }
 
@@ -44,4 +52,20 @@ export async function adminLogin(body: { email: string; password: string }) {
     body,
   });
   return normalize(raw, "admin");
+}
+
+/** Public — called from `/verify-email?token=...`. */
+export function verifyEmail(token: string) {
+  return apiFetch<VerifyEmailResponse>("/auth/verify-email", {
+    method: "POST",
+    body: { token },
+  });
+}
+
+/** Customer JWT — resend verification email. */
+export function resendVerification(token: string) {
+  return apiFetch<VerifyEmailResponse>("/auth/resend-verification", {
+    method: "POST",
+    token,
+  });
 }

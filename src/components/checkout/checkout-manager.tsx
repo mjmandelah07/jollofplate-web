@@ -10,6 +10,7 @@ import { AddressLineAutocomplete } from "@/components/checkout/address-autocompl
 import { OrderStatusBadge } from "@/components/admin/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/hooks/use-cart";
@@ -29,7 +30,7 @@ import {
   saveCartNotes,
   saveDeliveryAddress,
 } from "@/lib/cart";
-import { formatNaira } from "@/lib/format";
+import { formatNaira, toNigeriaLocalPhone } from "@/lib/format";
 import {
   buildWhatsAppMessage,
   buildWhatsAppUrl,
@@ -151,7 +152,9 @@ export function CheckoutManager({
       ...(address.landmark?.trim()
         ? { landmark: address.landmark.trim() }
         : {}),
-      ...(address.phone?.trim() ? { phone: address.phone.trim() } : {}),
+      ...(address.phone?.trim()
+        ? { phone: toNigeriaLocalPhone(address.phone) }
+        : {}),
     };
 
     // Open during the click gesture so browsers do not block WhatsApp later.
@@ -492,16 +495,13 @@ export function CheckoutManager({
                   (optional)
                 </span>
               </label>
-              <Input
+              <PhoneInput
                 id="delivery-phone"
-                type="tel"
                 value={address.phone || ""}
                 disabled={placing}
-                placeholder="08012345678"
                 className="h-11 rounded-xl"
-                onChange={(event) =>
-                  updateAddress({ phone: event.target.value })
-                }
+                inputClassName="text-base md:text-sm"
+                onChange={(phone) => updateAddress({ phone })}
               />
             </div>
 

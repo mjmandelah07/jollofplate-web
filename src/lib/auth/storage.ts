@@ -2,9 +2,15 @@ const CUSTOMER_TOKEN_KEY = "customerToken";
 const ADMIN_TOKEN_KEY = "adminToken";
 const ADMIN_USER_KEY = "adminUser";
 const CUSTOMER_USER_KEY = "customerUser";
+export const CUSTOMER_SESSION_EVENT = "jollofplate:customer-session";
 
 function canUseStorage() {
   return typeof window !== "undefined";
+}
+
+function notifyCustomerSession() {
+  if (!canUseStorage()) return;
+  window.dispatchEvent(new Event(CUSTOMER_SESSION_EVENT));
 }
 
 export function getCustomerToken() {
@@ -15,11 +21,19 @@ export function getCustomerToken() {
 export function setCustomerSession(token: string, user: unknown) {
   localStorage.setItem(CUSTOMER_TOKEN_KEY, token);
   localStorage.setItem(CUSTOMER_USER_KEY, JSON.stringify(user));
+  notifyCustomerSession();
+}
+
+export function updateCustomerUser(user: unknown) {
+  if (!canUseStorage()) return;
+  localStorage.setItem(CUSTOMER_USER_KEY, JSON.stringify(user));
+  notifyCustomerSession();
 }
 
 export function clearCustomerSession() {
   localStorage.removeItem(CUSTOMER_TOKEN_KEY);
   localStorage.removeItem(CUSTOMER_USER_KEY);
+  notifyCustomerSession();
 }
 
 export function getCustomerUser<T = unknown>() {

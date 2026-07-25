@@ -1,18 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
+import { toast } from "sonner";
 import { AuthShell } from "@/components/layout/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { customerRegister } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { getSafeNextPath, withNextQuery } from "@/lib/auth/redirect";
 import { setCustomerSession } from "@/lib/auth/storage";
+import { toNigeriaLocalPhone } from "@/lib/format";
 
-export default function CustomerRegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = getSafeNextPath(searchParams.get("next"));
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -33,9 +41,24 @@ export default function CustomerRegisterPage() {
     setLoading(true);
 
     try {
-      const result = await customerRegister(form);
-      setCustomerSession(result.accessToken, result.user);
-      router.replace("/orders");
+      const phone = toNigeriaLocalPhone(form.phone);
+      if (phone.length < 11) {
+        setError("Enter a valid Nigerian phone number.");
+        setLoading(false);
+        return;
+      }
+
+      const result = await customerRegister({ ...form, phone });
+      setCustomerSession(result.accessToken, {
+        ...result.user,
+        role: "customer",
+        emailVerified: result.user.emailVerified ?? false,
+      });
+      toast.success(
+        result.message ||
+          "Registered. Check your email to verify your account.",
+      );
+      router.replace(next);
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -56,7 +79,10 @@ export default function CustomerRegisterPage() {
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link
+            href={withNextQuery("/login", next)}
+            className="font-medium text-primary hover:underline"
+          >
             Sign in
           </Link>
         </>
@@ -96,20 +122,18 @@ export default function CustomerRegisterPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="phone">Phone</Label>
-          <Input
+          <PhoneInput
             id="phone"
-            type="tel"
             required
-            placeholder="2348012345678"
             value={form.phone}
-            onChange={(e) => update("phone", e.target.value)}
+            onChange={(phone) => update("phone", phone)}
           />
+          <p className="text-xs text-muted-foreground">Nigeria (+234)</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             required
             minLength={8}
@@ -127,5 +151,19 @@ export default function CustomerRegisterPage() {
         </Button>
       </form>
     </AuthShell>
+  );
+}
+
+export default function CustomerRegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-full flex-1 items-center justify-center text-sm text-muted-foreground">
+          Loading…
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }

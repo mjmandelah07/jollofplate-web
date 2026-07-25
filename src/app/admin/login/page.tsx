@@ -7,6 +7,7 @@ import { AuthShell } from "@/components/layout/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { adminLogin } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { getAdminToken, setAdminSession } from "@/lib/auth/storage";
@@ -71,9 +72,8 @@ export default function AdminLoginPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="admin-password">Password</Label>
-          <Input
+          <PasswordInput
             id="admin-password"
-            type="password"
             autoComplete="current-password"
             required
             value={password}
