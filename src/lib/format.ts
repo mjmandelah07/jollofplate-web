@@ -6,8 +6,40 @@ export function formatNaira(amount: number) {
   }).format(amount);
 }
 
-export function formatPhoneForWhatsApp(phone: string) {
+export const NIGERIA_DIAL_CODE = "234";
+
+/** Digits only. */
+export function digitsOnly(phone: string) {
   return phone.replace(/\D/g, "");
+}
+
+/**
+ * Local NG number for the API / storage (e.g. 08012345678).
+ * Accepts 801…, 0801…, or 234801….
+ */
+export function toNigeriaLocalPhone(phone: string) {
+  let digits = digitsOnly(phone);
+  if (!digits) return "";
+
+  if (digits.startsWith(NIGERIA_DIAL_CODE)) {
+    digits = digits.slice(NIGERIA_DIAL_CODE.length);
+  }
+  if (!digits.startsWith("0") && digits.length === 10) {
+    digits = `0${digits}`;
+  }
+  return digits;
+}
+
+/** National part shown next to +234 (no leading 0). */
+export function toNigeriaNationalNumber(phone: string) {
+  const local = toNigeriaLocalPhone(phone);
+  return local.startsWith("0") ? local.slice(1) : local;
+}
+
+export function formatPhoneForWhatsApp(phone: string) {
+  const local = toNigeriaLocalPhone(phone);
+  if (!local) return digitsOnly(phone);
+  return `${NIGERIA_DIAL_CODE}${local.replace(/^0/, "")}`;
 }
 
 export const WEEKDAY_LABELS: Record<string, string> = {

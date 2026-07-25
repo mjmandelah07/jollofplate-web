@@ -77,7 +77,7 @@ export function normalizeBusinessHours(
   };
 }
 
-/** Persist in the legacy map shape the current API footer already understands. */
+/** Persist in the legacy map shape older APIs understood. Kept for fallback. */
 export function toLegacyBusinessHours(
   hours: StructuredBusinessHours,
 ): LegacyBusinessHours {
@@ -91,6 +91,46 @@ export function toLegacyBusinessHours(
     }
   }
   return result;
+}
+
+export type ApiBusinessHourDay = {
+  day: string;
+  label: string;
+  closed: boolean;
+  open?: string;
+  close?: string;
+};
+
+export type ApiBusinessHours = {
+  timezone: string;
+  week: ApiBusinessHourDay[];
+};
+
+/**
+ * Structured shape the API expects: `{ timezone, week[] }` with all 7 days,
+ * full lowercase day names, and `open`/`close` omitted when `closed`.
+ */
+export function toApiBusinessHours(
+  hours: StructuredBusinessHours,
+): ApiBusinessHours {
+  return {
+    timezone: hours.timezone?.trim() || "Africa/Lagos",
+    week: DAY_META.map((meta) => {
+      const day = hours.week.find((item) => item.day === meta.day);
+      const closed = Boolean(day?.closed);
+      return {
+        day: meta.day,
+        label: meta.label,
+        closed,
+        ...(closed
+          ? {}
+          : {
+              open: day?.open || "10:00",
+              close: day?.close || "21:00",
+            }),
+      };
+    }),
+  };
 }
 
 export function emptyBusinessHours() {

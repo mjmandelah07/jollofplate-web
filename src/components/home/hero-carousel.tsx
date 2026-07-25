@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { cn } from "@/lib/utils";
@@ -20,8 +20,9 @@ type HeroCarouselProps = {
   intervalMs?: number;
 };
 
-export function HeroCarousel({ slides, intervalMs = 6000 }: HeroCarouselProps) {
+export function HeroCarousel({ slides, intervalMs = 5000 }: HeroCarouselProps) {
   const [index, setIndex] = useState(0);
+  const slide = slides[index] ?? slides[0];
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -31,24 +32,26 @@ export function HeroCarousel({ slides, intervalMs = 6000 }: HeroCarouselProps) {
     return () => window.clearInterval(id);
   }, [slides.length, intervalMs]);
 
-  const slide = slides[index];
+  if (!slide) return null;
 
   return (
     <section className="relative min-h-[88svh] overflow-hidden bg-foreground">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={slide.src}
-          className="absolute inset-0"
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+      {/* Keep every slide mounted so images stay warm and crossfade without a dark gap. */}
+      {slides.map((item, i) => (
+        <div
+          key={item.src}
+          aria-hidden={i !== index}
+          className={cn(
+            "absolute inset-0 transition-opacity duration-700 ease-out",
+            i === index ? "opacity-100" : "opacity-0",
+          )}
         >
           <Image
-            src={slide.src}
-            alt={slide.alt}
+            src={item.src}
+            alt={item.alt}
             fill
-            priority={index === 0}
+            priority={i < 2}
+            loading="eager"
             className="object-cover"
             sizes="100vw"
           />
@@ -56,15 +59,15 @@ export function HeroCarousel({ slides, intervalMs = 6000 }: HeroCarouselProps) {
             aria-hidden
             className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--foreground)_72%,transparent)_0%,color-mix(in_srgb,var(--foreground)_35%,transparent)_45%,transparent_75%)]"
           />
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      ))}
 
       <Container className="relative z-10 flex min-h-[88svh] flex-col justify-end pb-16 pt-28 sm:justify-center sm:pb-24">
         <motion.div
           key={`${slide.src}-copy`}
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.15 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className="max-w-xl space-y-5 text-primary-foreground"
         >
           <p className="font-heading text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">

@@ -301,6 +301,32 @@ export function OrderDetailManager() {
               <p className="text-muted-foreground">{order.notes}</p>
             </div>
           ) : null}
+
+          {order.deliveryLine1 ? (
+            <div className="mt-4 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+              <p className="font-medium text-foreground">Delivery address</p>
+              <p className="text-muted-foreground">
+                {[
+                  order.deliveryLine1,
+                  order.deliveryLine2,
+                  order.deliveryCity,
+                  order.deliveryState,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+              {order.deliveryLandmark ? (
+                <p className="mt-1 text-muted-foreground">
+                  Landmark: {order.deliveryLandmark}
+                </p>
+              ) : null}
+              {order.deliveryPhone ? (
+                <p className="mt-1 text-muted-foreground">
+                  Phone: {order.deliveryPhone}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </section>
       </div>
 

@@ -7,14 +7,16 @@ import { AuthShell } from "@/components/layout/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { customerLogin } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { getSafeNextPath, withNextQuery } from "@/lib/auth/redirect";
 import { setCustomerSession } from "@/lib/auth/storage";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/orders";
+  const next = getSafeNextPath(searchParams.get("next"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,11 @@ function LoginForm() {
 
     try {
       const result = await customerLogin({ email, password });
-      setCustomerSession(result.accessToken, result.user);
+      setCustomerSession(result.accessToken, {
+        ...result.user,
+        role: "customer",
+        emailVerified: result.user.emailVerified ?? false,
+      });
       router.replace(next);
     } catch (err) {
       setError(
@@ -48,7 +54,10 @@ function LoginForm() {
       footer={
         <>
           New here?{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">
+          <Link
+            href={withNextQuery("/register", next)}
+            className="font-medium text-primary hover:underline"
+          >
             Create an account
           </Link>
         </>
@@ -69,9 +78,8 @@ function LoginForm() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
             required
             value={password}
@@ -84,7 +92,7 @@ function LoginForm() {
             {error}
           </p>
         ) : null}
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full py-2" disabled={loading}>
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>
