@@ -1,19 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, ShoppingCart, X } from "lucide-react";
+import {
+  ChevronDown,
+  CircleUserRound,
+  LogOut,
+  Menu,
+  Package,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { CART_UPDATED_EVENT, getCartCount } from "@/lib/cart";
 import {
+  clearCustomerSession,
   CUSTOMER_SESSION_EVENT,
   getCustomerToken,
+  getCustomerUser,
 } from "@/lib/auth/storage";
+import type { AuthUser } from "@/types";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -53,12 +72,18 @@ function NavLink({
 
 export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [cartCount, setCartCount] = useState(cartCountProp ?? 0);
 
   useEffect(() => {
-    const sync = () => setIsLoggedIn(Boolean(getCustomerToken()));
+    const sync = () => {
+      const token = getCustomerToken();
+      setIsLoggedIn(Boolean(token));
+      setUser(token ? getCustomerUser<AuthUser>() : null);
+    };
     sync();
     window.addEventListener(CUSTOMER_SESSION_EVENT, sync);
     window.addEventListener("storage", sync);
@@ -67,6 +92,16 @@ export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number })
       window.removeEventListener("storage", sync);
     };
   }, []);
+
+  function logout() {
+    clearCustomerSession();
+    router.push("/login");
+  }
+
+  const displayName =
+    user?.firstName?.trim() ||
+    user?.email?.split("@")[0] ||
+    "Account";
 
   useEffect(() => {
     if (typeof cartCountProp === "number") {
@@ -125,11 +160,54 @@ export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number })
               ) : null}
             </Link>
           </Button>
-          <Button size="sm" asChild>
-            <Link href={isLoggedIn ? "/orders" : "/login"}>
-              {isLoggedIn ? "Account" : "Login"}
-            </Link>
-          </Button>
+          {isLoggedIn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="max-w-44 gap-1.5">
+                  <CircleUserRound className="size-4" />
+                  <span className="truncate">{displayName}</span>
+                  <ChevronDown className="size-3.5 opacity-80" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user?.email ? (
+                  <>
+                    <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">
+                      {user.email}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                  </>
+                ) : null}
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => router.push("/account")}
+                >
+                  <CircleUserRound className="size-4" />
+                  Account
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => router.push("/account?tab=orders")}
+                >
+                  <Package className="size-4" />
+                  My orders
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="cursor-pointer"
+                  onSelect={logout}
+                >
+                  <LogOut className="size-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button size="sm" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
@@ -206,7 +284,7 @@ export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number })
                 </nav>
                 <Button asChild className="mt-4 w-full" size="lg">
                   <Link
-                    href={isLoggedIn ? "/orders" : "/login"}
+                    href={isLoggedIn ? "/account" : "/login"}
                     onClick={() => setOpen(false)}
                   >
                     {isLoggedIn ? "Account" : "Login"}

@@ -92,7 +92,7 @@ function LoginForm() {
             {error}
           </p>
         ) : null}
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full py-2" disabled={loading}>
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>

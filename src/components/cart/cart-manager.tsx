@@ -134,16 +134,21 @@ export function CartManager({ deliveryFee = 0 }: { deliveryFee?: number }) {
                 </div>
 
                 {line.extras.length > 0 ? (
-                  <ul className="mt-2 space-y-0.5">
-                    {line.extras.map((extra) => (
-                      <li
-                        key={`${extra.name}-${extra.price}`}
-                        className="text-xs text-muted-foreground"
-                      >
-                        + {extra.name} ({formatNaira(extra.price)})
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                      Extras
+                    </p>
+                    <ul className="space-y-0.5">
+                      {line.extras.map((extra) => (
+                        <li
+                          key={`${extra.name}-${extra.price}`}
+                          className="text-xs text-muted-foreground"
+                        >
+                          Extra: {extra.name} ({formatNaira(extra.price)})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3">

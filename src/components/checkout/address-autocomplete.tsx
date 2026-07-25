@@ -116,12 +116,14 @@ export function AddressLineAutocomplete({
   onSelect,
   disabled,
   className,
+  id = "delivery-line1",
 }: {
   value: string;
   onChange: (value: string) => void;
   onSelect: (parsed: ParsedAddress) => void;
   disabled?: boolean;
   className?: string;
+  id?: string;
 }) {
   const listId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -201,7 +203,7 @@ export function AddressLineAutocomplete({
       <div className="relative">
         <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          id="delivery-line1"
+          id={id}
           autoComplete="street-address"
           disabled={disabled}
           value={value}
@@ -249,11 +251,11 @@ export function AddressLineAutocomplete({
         </ul>
       ) : null}
 
-      <p className="mt-1.5 text-xs text-muted-foreground">
-        {loading
-          ? "Searching addresses…"
-          : "Free OpenStreetMap suggestions — pick one, then adjust apartment / landmark below."}
-      </p>
+      {loading ? (
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Searching addresses…
+        </p>
+      ) : null}
     </div>
   );
 }

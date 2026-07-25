@@ -137,7 +137,7 @@ function VerifyEmailContent() {
                   <Link href="/login">Sign in</Link>
                 </Button>
               )}
-              <Button variant="outline" className="w-full" asChild>
+              <Button variant="outline" className="w-full py-2" asChild>
                 <Link href="/register">Create account</Link>
               </Button>
             </>

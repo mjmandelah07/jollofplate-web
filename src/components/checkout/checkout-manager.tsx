@@ -6,11 +6,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, MessageCircle, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { AddressLineAutocomplete } from "@/components/checkout/address-autocomplete";
+import { CheckoutDeliverySection } from "@/components/checkout/checkout-delivery-section";
 import { OrderStatusBadge } from "@/components/admin/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PhoneInput } from "@/components/ui/phone-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/hooks/use-cart";
@@ -112,12 +110,9 @@ export function CheckoutManager({
     [lines],
   );
 
-  function updateAddress(patch: Partial<DeliveryAddressInput>) {
-    setAddress((prev) => {
-      const next = { ...prev, ...patch };
-      saveDeliveryAddress(next);
-      return next;
-    });
+  function updateAddress(next: DeliveryAddressInput) {
+    setAddress(next);
+    saveDeliveryAddress(next);
   }
 
   function validateAddress() {
@@ -388,142 +383,31 @@ export function CheckoutManager({
           </ul>
         </section>
 
+        <CheckoutDeliverySection
+          address={address}
+          onAddressChange={updateAddress}
+          disabled={placing}
+        />
+
         <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(34,34,34,0.4)]">
-          <h2 className="font-heading text-lg font-semibold">
-            Delivery address
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Required so the rider can find you in Ikorodu / Lagos.
-          </p>
-
-          <div className="mt-5 space-y-4">
-            <div className="space-y-2">
-              <label
-                htmlFor="delivery-line1"
-                className="text-sm font-medium"
-              >
-                Street address <span className="text-destructive">*</span>
-              </label>
-              <AddressLineAutocomplete
-                value={address.line1}
-                disabled={placing}
-                onChange={(line1) => updateAddress({ line1 })}
-                onSelect={({ line1, city, state }) =>
-                  updateAddress({ line1, city, state })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="delivery-line2" className="text-sm font-medium">
-                Apartment / floor{" "}
-                <span className="font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <Input
-                id="delivery-line2"
-                value={address.line2 || ""}
-                disabled={placing}
-                placeholder="Flat 3B, Block A…"
-                className="h-11 rounded-xl"
-                onChange={(event) =>
-                  updateAddress({ line2: event.target.value })
-                }
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="delivery-city" className="text-sm font-medium">
-                  City <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id="delivery-city"
-                  value={address.city}
-                  disabled={placing}
-                  placeholder="Ikorodu"
-                  className="h-11 rounded-xl"
-                  onChange={(event) =>
-                    updateAddress({ city: event.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="delivery-state" className="text-sm font-medium">
-                  State
-                </label>
-                <Input
-                  id="delivery-state"
-                  value={address.state || ""}
-                  disabled={placing}
-                  placeholder="Lagos"
-                  className="h-11 rounded-xl"
-                  onChange={(event) =>
-                    updateAddress({ state: event.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="delivery-landmark"
-                className="text-sm font-medium"
-              >
-                Landmark{" "}
-                <span className="font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <Input
-                id="delivery-landmark"
-                value={address.landmark || ""}
-                disabled={placing}
-                placeholder="Near the roundabout / bus park…"
-                className="h-11 rounded-xl"
-                onChange={(event) =>
-                  updateAddress({ landmark: event.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="delivery-phone" className="text-sm font-medium">
-                Delivery phone{" "}
-                <span className="font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <PhoneInput
-                id="delivery-phone"
-                value={address.phone || ""}
-                disabled={placing}
-                className="h-11 rounded-xl"
-                inputClassName="text-base md:text-sm"
-                onChange={(phone) => updateAddress({ phone })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="checkout-notes" className="text-sm font-medium">
-                Order notes{" "}
-                <span className="font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <Textarea
-                id="checkout-notes"
-                rows={3}
-                value={notes}
-                disabled={placing}
-                onChange={(event) => {
-                  setNotes(event.target.value);
-                  saveCartNotes(event.target.value);
-                }}
-                placeholder="Extra spicy, no onions, call on arrival…"
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="checkout-notes" className="text-sm font-medium">
+              Order notes{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </label>
+            <Textarea
+              id="checkout-notes"
+              rows={3}
+              value={notes}
+              disabled={placing}
+              onChange={(event) => {
+                setNotes(event.target.value);
+                saveCartNotes(event.target.value);
+              }}
+              placeholder="Extra spicy, no onions, call on arrival…"
+            />
           </div>
         </section>
       </div>

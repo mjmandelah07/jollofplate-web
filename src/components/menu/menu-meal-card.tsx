@@ -62,19 +62,14 @@ export function MenuMealCard({
           />
 
           <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-            <div className="flex flex-wrap gap-1.5">
-              {hasSale ? (
-                <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground shadow-sm">
-                  -{discountPercent}%
-                </span>
-              ) : null}
-              {meal.bestSeller ? (
-                <span className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground shadow-sm">
-                  <Flame className="size-3" />
-                  Top seller
-                </span>
-              ) : null}
-            </div>
+            {meal.bestSeller ? (
+              <span className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground shadow-sm">
+                <Flame className="size-3" />
+                Top seller
+              </span>
+            ) : (
+              <span />
+            )}
             {meal.preparationTime ? (
               <span className="flex items-center gap-1 rounded-full bg-background/85 px-2.5 py-1 text-[11px] font-medium text-foreground backdrop-blur-sm">
                 <Clock className="size-3" />
@@ -106,19 +101,21 @@ export function MenuMealCard({
           ) : null}
 
           <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-            <div className="flex items-baseline gap-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
               <span className="font-heading text-lg font-bold text-primary">
                 {formatNaira(displayPrice)}
               </span>
               {hasSale ? (
-                <span className="text-sm text-muted-foreground line-through">
-                  {formatNaira(meal.price)}
-                </span>
+                <>
+                  <span className="text-sm text-muted-foreground line-through">
+                    {formatNaira(meal.price)}
+                  </span>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                    {discountPercent}% off
+                  </span>
+                </>
               ) : null}
             </div>
-            <span className="text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
-              View
-            </span>
           </div>
         </div>
       </Link>

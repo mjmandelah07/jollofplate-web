@@ -7,7 +7,7 @@ import { MealDetail } from "@/components/menu/meal-detail";
 import { RelatedMeals } from "@/components/menu/related-meals";
 import { getMealBySlug, getRelatedMeals } from "@/lib/api/catalog";
 import { ApiError } from "@/lib/api/client";
-import { SITE_URL, buildPageMetadata } from "@/lib/seo";
+import { SITE_URL, absoluteAssetUrl, buildPageMetadata } from "@/lib/seo";
 import type { Meal } from "@/types/catalog";
 
 type MealPageProps = {
@@ -38,13 +38,26 @@ export async function generateMetadata({
     });
   }
 
+  const mealImage = meal.images?.find((src) => Boolean(src?.trim())) || null;
+  const description =
+    meal.description?.trim() ||
+    `Order ${meal.name} from JollofPlate — delivery and pickup in Ikorodu, Lagos.`;
+
   return buildPageMetadata({
     title: meal.name,
-    description:
-      meal.description ||
-      `Order ${meal.name} from JollofPlate — delivery and pickup in Ikorodu, Lagos.`,
+    description,
     path: `/menu/${meal.slug}`,
-    image: meal.images?.[0],
+    image: mealImage,
+    imageAlt: mealImage
+      ? `${meal.name} from JollofPlate`
+      : undefined,
+    keywords: [
+      meal.name,
+      meal.category?.name,
+      "JollofPlate",
+      "Ikorodu food delivery",
+      "order jollof online",
+    ].filter(Boolean) as string[],
   });
 }
 
@@ -67,7 +80,9 @@ export default async function MealDetailPage({ params }: MealPageProps) {
     "@type": "Product",
     name: meal.name,
     description: meal.description || undefined,
-    image: meal.images?.length ? meal.images : undefined,
+    image: meal.images?.length
+      ? meal.images.map((src) => absoluteAssetUrl(src))
+      : undefined,
     category: meal.category?.name,
     url: new URL(`/menu/${meal.slug}`, SITE_URL).toString(),
     offers: {

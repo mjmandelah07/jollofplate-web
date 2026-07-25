@@ -24,8 +24,8 @@ export default async function CustomerOrderPage({ params }: OrderPageProps) {
   const { id } = await params;
 
   return (
-    <div className="border-b border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--secondary)_8%,var(--background))_0%,var(--background)_55%)]">
-      <Container className="py-8 sm:py-12">
+    <div className="min-h-[70vh] border-b border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--secondary)_9%,var(--background))_0%,var(--background)_22rem)]">
+      <Container className="py-6 sm:py-12">
         <CustomerAuthGate>
           <CustomerOrderDetail orderId={id} />
         </CustomerAuthGate>
