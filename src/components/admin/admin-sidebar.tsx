@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ExternalLink,
   LayoutDashboard,
+  ListChecks,
   LogOut,
+  Package,
   Settings,
   ShoppingBag,
   Tags,
@@ -21,6 +23,12 @@ const links = [
   { href: "/admin/categories", label: "Categories", icon: Tags },
   { href: "/admin/meals", label: "Meals", icon: UtensilsCrossed },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/sourcing-items", label: "Sourcing items", icon: Package },
+  {
+    href: "/admin/sourcing-requests",
+    label: "Shopping requests",
+    icon: ListChecks,
+  },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

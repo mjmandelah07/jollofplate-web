@@ -12,7 +12,7 @@ const services = [
   {
     title: "Food ordering",
     description:
-      "Order fresh jollof plates online — delivery or pickup in Ikorodu, Lagos.",
+      "Order meals online — jollof, sides, and more. Delivery or pickup in Ikorodu, Lagos.",
     href: "/menu",
     icon: UtensilsCrossed,
   },
@@ -24,10 +24,10 @@ const services = [
     icon: PartyPopper,
   },
   {
-    title: "Groceries",
+    title: "Custom shopping",
     description:
-      "Rice, oils, tinned tomatoes, Maggi, and frozen foods for your kitchen.",
-    href: "/menu",
+      "Build a grocery list, submit a shopping request, and get a WhatsApp quote.",
+    href: "/custom-shopping",
     icon: ShoppingBasket,
   },
   {
@@ -45,7 +45,7 @@ export function ServicesSection() {
       <Container>
         <SectionHeader
           title="What we offer"
-          description="Meals, groceries, catering, and office lunch from Ikorodu — delivery or pickup."
+          description="Meals, custom shopping, catering, and office lunch from Ikorodu — delivery or pickup."
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service) => {

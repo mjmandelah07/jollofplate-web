@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/home/section-header";
 const steps = [
   {
     title: "Browse the menu",
-    description: "Pick jollof plates, sides, groceries, or catering trays.",
+    description: "Pick meals, sides, custom shopping, or catering trays.",
     icon: Utensils,
   },
   {

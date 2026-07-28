@@ -37,6 +37,7 @@ export type CustomerOrdersQuery = {
   status?: OrderStatus;
   page?: number;
   limit?: number;
+  signal?: AbortSignal;
 };
 
 function toQuery(params?: CustomerOrdersQuery) {
@@ -66,9 +67,11 @@ export function getMyOrders(
 ): Promise<PaginatedResult<Order>> {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? ADMIN_PAGE_SIZE;
+  const { signal, ...query } = params ?? {};
 
-  return apiFetch<unknown>(`/orders${toQuery({ ...params, page, limit })}`, {
+  return apiFetch<unknown>(`/orders${toQuery({ ...query, page, limit })}`, {
     token,
+    signal,
   }).then((result) =>
     normalizePaginated<Order>(result, {
       page,

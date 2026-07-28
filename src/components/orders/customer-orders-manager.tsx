@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ChevronRight,
@@ -76,43 +76,55 @@ export function CustomerOrdersManager() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, tab]);
-
-  const loadOrders = useCallback(async () => {
     const token = getCustomerToken();
     if (!token) {
       router.replace("/login?next=/orders");
       return;
     }
 
+    const controller = new AbortController();
     setLoading(true);
-    try {
-      const data = await getMyOrders(token, {
-        search: debouncedSearch,
-        status: tab === "ALL" ? undefined : tab,
-        page,
-        limit: ADMIN_PAGE_SIZE,
-      });
-      setOrders(data.items);
-      setMeta(data.meta);
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        clearCustomerSession();
-        router.replace("/login?next=/orders");
-        return;
+
+    void (async () => {
+      try {
+        const data = await getMyOrders(token, {
+          search: debouncedSearch || undefined,
+          status: tab === "ALL" ? undefined : tab,
+          page,
+          limit: ADMIN_PAGE_SIZE,
+          signal: controller.signal,
+        });
+        setOrders(data.items);
+        setMeta(data.meta);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        if (error instanceof ApiError && error.status === 401) {
+          clearCustomerSession();
+          router.replace("/login?next=/orders");
+          return;
+        }
+        toast.error(
+          error instanceof ApiError ? error.message : "Could not load orders",
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
-      toast.error(
-        error instanceof ApiError ? error.message : "Could not load orders",
-      );
-    } finally {
-      setLoading(false);
-    }
+    })();
+
+    return () => controller.abort();
   }, [debouncedSearch, page, router, tab]);
 
-  useEffect(() => {
-    void loadOrders();
-  }, [loadOrders]);
+  function selectTab(next: "ALL" | OrderStatus) {
+    setTab(next);
+    setPage(1);
+  }
+
+  function updateSearch(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -122,7 +134,7 @@ export function CustomerOrdersManager() {
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => updateSearch(e.target.value)}
               placeholder="Search order number…"
               aria-label="Search orders"
               className="h-11 rounded-xl bg-background pl-9 text-base sm:text-sm"
@@ -144,7 +156,7 @@ export function CustomerOrdersManager() {
                     ? "bg-card text-foreground shadow-sm ring-1 ring-border/70"
                     : "text-muted-foreground",
                 )}
-                onClick={() => setTab(item.id)}
+                onClick={() => selectTab(item.id)}
               >
                 {item.label}
               </button>
