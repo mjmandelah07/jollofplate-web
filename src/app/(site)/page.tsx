@@ -124,6 +124,15 @@ export default async function HomePage() {
       : undefined,
   };
 
+  const groceriesCategory = categories.find(
+    (category) =>
+      /grocer|foodstuff|pantry|frozen/i.test(category.slug) ||
+      /grocer|foodstuff|pantry|frozen/i.test(category.name),
+  );
+  const groceriesHref = groceriesCategory
+    ? `/menu?category=${groceriesCategory.slug}`
+    : "/menu";
+
   return (
     <>
       <script
@@ -131,7 +140,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroCarousel slides={heroSlides} />
-      <ServicesSection />
+      <ServicesSection groceriesHref={groceriesHref} />
       <CategoriesSection categories={categories} />
       <MealGridSection
         title="Featured on the menu"

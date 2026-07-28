@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/home/section-header";
 const steps = [
   {
     title: "Browse the menu",
-    description: "Pick meals, sides, custom shopping, or catering trays.",
+    description: "Pick meals, priced groceries, custom shopping, or catering.",
     icon: Utensils,
   },
   {
