@@ -562,12 +562,11 @@ export function CheckoutManager({
         <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(34,34,34,0.4)]">
           <h2 className="font-heading text-lg font-semibold">Delivery</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Delivery fee from kitchen settings. We’ll confirm timing on
-            WhatsApp after you place the order.
+            We’ll confirm timing on WhatsApp after you place the order.
           </p>
           <div className="mt-4 flex items-center justify-between rounded-2xl border border-border/80 bg-muted/30 px-4 py-3">
             <span className="text-sm font-medium text-foreground">
-              Delivery fee
+              Delivery from
             </span>
             <span className="font-heading text-lg font-semibold text-primary">
               {formatNaira(effectiveDeliveryFee)}
@@ -606,7 +605,7 @@ export function CheckoutManager({
             <span className="font-medium">{formatNaira(subtotal)}</span>
           </div>
           <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">Delivery</span>
+            <span className="text-muted-foreground">Delivery from</span>
             <span className="font-medium">
               {formatNaira(effectiveDeliveryFee)}
             </span>
