@@ -8,6 +8,7 @@ import {
   type AddressFormState,
 } from "@/components/account/address-fields";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   emptyAddressForm,
   formatSavedAddress,
@@ -145,20 +146,18 @@ export function CheckoutDeliverySection({
   }
 
   function updateForm(patch: Partial<AddressFormState>) {
-    setForm((prev) => {
-      const next = { ...prev, ...patch };
-      const delivery = {
-        line1: next.line1,
-        line2: next.line2,
-        city: next.city,
-        state: next.state,
-        landmark: next.landmark,
-        phone: next.phone,
-      };
-      onAddressChange(delivery);
-      saveDeliveryAddress(delivery);
-      return next;
-    });
+    const next = { ...form, ...patch };
+    const delivery = {
+      line1: next.line1,
+      line2: next.line2,
+      city: next.city,
+      state: next.state,
+      landmark: next.landmark,
+      phone: next.phone,
+    };
+    setForm(next);
+    onAddressChange(delivery);
+    saveDeliveryAddress(delivery);
   }
 
   async function saveNewAddress() {
@@ -285,13 +284,13 @@ export function CheckoutDeliverySection({
 
             {getCustomerToken() ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <label className="flex items-center gap-2 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    className="size-4 rounded border-border"
+                <label className="flex items-center gap-2.5 text-sm text-foreground">
+                  <Checkbox
                     checked={saveToAccount}
                     disabled={disabled || savingNew}
-                    onChange={(event) => setSaveToAccount(event.target.checked)}
+                    onCheckedChange={(checked) =>
+                      setSaveToAccount(checked === true)
+                    }
                   />
                   Save this address to my account
                 </label>

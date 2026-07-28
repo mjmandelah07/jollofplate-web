@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   Package,
+  ShoppingBasket,
   ShoppingCart,
   X,
 } from "lucide-react";
@@ -37,6 +38,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/menu", label: "Menu" },
+  { href: "/custom-shopping", label: "Shop" },
   { href: "/cart", label: "Cart" },
   { href: "/orders", label: "Orders", authOnly: true },
 ];
@@ -191,6 +193,13 @@ export function SiteHeader({ cartCount: cartCountProp }: { cartCount?: number })
                 >
                   <Package className="size-4" />
                   My orders
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => router.push("/sourcing-requests")}
+                >
+                  <ShoppingBasket className="size-4" />
+                  Shopping requests
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

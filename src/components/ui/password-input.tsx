@@ -1,28 +1,28 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
+import * as React from "react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-type PasswordInputProps = Omit<
-  React.ComponentProps<"input">,
-  "type"
-> & {
+type PasswordInputProps = Omit<React.ComponentProps<"input">, "type"> & {
   containerClassName?: string;
 };
 
-export function PasswordInput({
-  className,
-  containerClassName,
-  disabled,
-  ...props
-}: PasswordInputProps) {
+export const PasswordInput = React.forwardRef<
+  HTMLInputElement,
+  PasswordInputProps
+>(function PasswordInput(
+  { className, containerClassName, disabled, ...props },
+  ref,
+) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className={cn("relative", containerClassName)}>
       <Input
+        ref={ref}
         type={visible ? "text" : "password"}
         disabled={disabled}
         className={cn("pr-10", className)}
@@ -40,4 +40,4 @@ export function PasswordInput({
       </button>
     </div>
   );
-}
+});

@@ -18,11 +18,12 @@ type RequestOptions = {
   body?: unknown;
   token?: string | null;
   headers?: HeadersInit;
+  signal?: AbortSignal;
 };
 
 export async function apiFetch<T>(
   path: string,
-  { method = "GET", body, token, headers }: RequestOptions = {},
+  { method = "GET", body, token, headers, signal }: RequestOptions = {},
 ): Promise<T> {
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
@@ -40,6 +41,7 @@ export async function apiFetch<T>(
           ? (body as FormData)
           : JSON.stringify(body),
     cache: "no-store",
+    signal,
   });
 
   if (res.status === 204) {

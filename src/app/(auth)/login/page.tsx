@@ -2,34 +2,47 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useState } from "react";
+import { Suspense, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthShell } from "@/components/layout/auth-shell";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { customerLogin } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { getSafeNextPath, withNextQuery } from "@/lib/auth/redirect";
+import { loginSchema, type LoginValues } from "@/lib/auth/schemas";
 import { setCustomerSession } from "@/lib/auth/storage";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = getSafeNextPath(searchParams.get("next"));
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    mode: "onBlur",
+  });
 
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setLoading(true);
+  async function onSubmit(values: LoginValues) {
+    setFormError(null);
 
     try {
-      const result = await customerLogin({ email, password });
+      const result = await customerLogin(values);
       setCustomerSession(result.accessToken, {
         ...result.user,
         role: "customer",
@@ -37,13 +50,15 @@ function LoginForm() {
       });
       router.replace(next);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Unable to sign in right now.",
-      );
-    } finally {
-      setLoading(false);
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Unable to sign in right now.";
+      setFormError(message);
     }
   }
+
+  const loading = form.formState.isSubmitting;
 
   return (
     <AuthShell
@@ -63,39 +78,55 @@ function LoginForm() {
         </>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    disabled={loading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <PasswordInput
-            id="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <PasswordInput
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    disabled={loading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        {error ? (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <Button type="submit" className="w-full py-2" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
-        </Button>
-      </form>
+          {formError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {formError}
+            </p>
+          ) : null}
+          <Button type="submit" className="w-full py-2" disabled={loading}>
+            {loading ? "Signing in…" : "Sign in"}
+          </Button>
+        </form>
+      </Form>
     </AuthShell>
   );
 }
