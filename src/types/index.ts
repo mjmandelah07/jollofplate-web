@@ -34,6 +34,16 @@ export type RestaurantSettings = {
   businessHours: BusinessHours;
   deliveryFee: number;
   socialLinks: SocialLinks | null;
+  pickupLine1?: string | null;
+  pickupLine2?: string | null;
+  pickupCity?: string | null;
+  pickupState?: string | null;
+  pickupZip?: string | null;
+  pickupCountry?: string | null;
+  pickupPhone?: string | null;
+  pickupEmail?: string | null;
+  pickupFirstName?: string | null;
+  pickupLastName?: string | null;
   createdAt: string;
   updatedAt: string;
 };

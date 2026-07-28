@@ -19,6 +19,7 @@ export type CreateOrderInput = {
   items: CreateOrderItemInput[];
   deliveryAddress: DeliveryAddressInput;
   notes?: string;
+  shippingRateId?: string;
 };
 
 export type { DeliveryAddressInput };

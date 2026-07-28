@@ -89,7 +89,9 @@ export function AddressFields({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-state`}>State</Label>
+          <Label htmlFor={`${idPrefix}-state`}>
+            State <span className="text-destructive">*</span>
+          </Label>
           <Input
             id={`${idPrefix}-state`}
             value={value.state}

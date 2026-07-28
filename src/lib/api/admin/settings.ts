@@ -10,6 +10,16 @@ export type AdminSettingsInput = Partial<{
   deliveryFee: number;
   businessHours: RestaurantSettings["businessHours"] | Record<string, unknown>;
   socialLinks: RestaurantSettings["socialLinks"];
+  pickupLine1: string;
+  pickupLine2: string;
+  pickupCity: string;
+  pickupState: string;
+  pickupZip: string;
+  pickupCountry: string;
+  pickupPhone: string;
+  pickupEmail: string;
+  pickupFirstName: string;
+  pickupLastName: string;
 }>;
 
 export function getAdminSettings(token: string) {

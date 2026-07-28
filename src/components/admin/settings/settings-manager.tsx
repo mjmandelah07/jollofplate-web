@@ -29,6 +29,16 @@ type SettingsForm = {
   contactNumber: string;
   address: string;
   deliveryFee: string;
+  pickupLine1: string;
+  pickupLine2: string;
+  pickupCity: string;
+  pickupState: string;
+  pickupZip: string;
+  pickupCountry: string;
+  pickupPhone: string;
+  pickupEmail: string;
+  pickupFirstName: string;
+  pickupLastName: string;
   instagram: string;
   facebook: string;
   twitter: string;
@@ -43,6 +53,16 @@ const emptyForm: SettingsForm = {
   contactNumber: "",
   address: "",
   deliveryFee: "0",
+  pickupLine1: "",
+  pickupLine2: "",
+  pickupCity: "",
+  pickupState: "Lagos",
+  pickupZip: "",
+  pickupCountry: "NG",
+  pickupPhone: "",
+  pickupEmail: "",
+  pickupFirstName: "",
+  pickupLastName: "",
   instagram: "",
   facebook: "",
   twitter: "",
@@ -73,6 +93,16 @@ export function SettingsManager() {
         contactNumber: data.contactNumber ?? "",
         address: data.address ?? "",
         deliveryFee: String(data.deliveryFee ?? 0),
+        pickupLine1: data.pickupLine1 ?? "",
+        pickupLine2: data.pickupLine2 ?? "",
+        pickupCity: data.pickupCity ?? "",
+        pickupState: data.pickupState ?? "Lagos",
+        pickupZip: data.pickupZip ?? "",
+        pickupCountry: data.pickupCountry ?? "NG",
+        pickupPhone: data.pickupPhone ?? "",
+        pickupEmail: data.pickupEmail ?? "",
+        pickupFirstName: data.pickupFirstName ?? "",
+        pickupLastName: data.pickupLastName ?? "",
         instagram: data.socialLinks?.instagram ?? "",
         facebook: data.socialLinks?.facebook ?? "",
         twitter: data.socialLinks?.twitter ?? "",
@@ -124,6 +154,16 @@ export function SettingsManager() {
         contactNumber: form.contactNumber.trim(),
         address: form.address.trim(),
         deliveryFee: Math.max(0, Math.round(Number(form.deliveryFee) || 0)),
+        pickupLine1: form.pickupLine1.trim(),
+        pickupLine2: form.pickupLine2.trim(),
+        pickupCity: form.pickupCity.trim(),
+        pickupState: form.pickupState.trim(),
+        pickupZip: form.pickupZip.trim(),
+        pickupCountry: form.pickupCountry.trim() || "NG",
+        pickupPhone: form.pickupPhone.trim(),
+        pickupEmail: form.pickupEmail.trim(),
+        pickupFirstName: form.pickupFirstName.trim(),
+        pickupLastName: form.pickupLastName.trim(),
         businessHours: toApiBusinessHours(form.hours),
         socialLinks: {
           instagram: form.instagram.trim() || undefined,
@@ -254,7 +294,7 @@ export function SettingsManager() {
           Delivery
         </h2>
         <div className="max-w-xs space-y-2">
-          <Label htmlFor="deliveryFee">Delivery fee (₦)</Label>
+          <Label htmlFor="deliveryFee">Fallback delivery fee (₦)</Label>
           <Input
             id="deliveryFee"
             type="number"
@@ -265,6 +305,136 @@ export function SettingsManager() {
               setForm((prev) => ({ ...prev, deliveryFee: e.target.value }))
             }
           />
+          <p className="text-xs text-muted-foreground">
+            Used when Terminal rates are unavailable or the customer skips live
+            shipping.
+          </p>
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div>
+          <h2 className="font-heading text-base font-semibold text-foreground">
+            Kitchen pickup (Terminal)
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Required for live carrier rates at checkout. This is where riders
+            collect orders.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="pickupLine1">Street address</Label>
+            <Input
+              id="pickupLine1"
+              value={form.pickupLine1}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupLine1: e.target.value }))
+              }
+              placeholder="12 Allen Avenue"
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="pickupLine2">Apartment / floor (optional)</Label>
+            <Input
+              id="pickupLine2"
+              value={form.pickupLine2}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupLine2: e.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupCity">City</Label>
+            <Input
+              id="pickupCity"
+              value={form.pickupCity}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupCity: e.target.value }))
+              }
+              placeholder="Ikorodu"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupState">State</Label>
+            <Input
+              id="pickupState"
+              value={form.pickupState}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupState: e.target.value }))
+              }
+              placeholder="Lagos"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupZip">ZIP / postal (optional)</Label>
+            <Input
+              id="pickupZip"
+              value={form.pickupZip}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupZip: e.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupCountry">Country</Label>
+            <Input
+              id="pickupCountry"
+              value={form.pickupCountry}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupCountry: e.target.value }))
+              }
+              placeholder="NG"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupPhone">Pickup phone</Label>
+            <Input
+              id="pickupPhone"
+              value={form.pickupPhone}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupPhone: e.target.value }))
+              }
+              placeholder="08012345678"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupEmail">Pickup email (optional)</Label>
+            <Input
+              id="pickupEmail"
+              type="email"
+              value={form.pickupEmail}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, pickupEmail: e.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupFirstName">Contact first name</Label>
+            <Input
+              id="pickupFirstName"
+              value={form.pickupFirstName}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  pickupFirstName: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pickupLastName">Contact last name</Label>
+            <Input
+              id="pickupLastName"
+              value={form.pickupLastName}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  pickupLastName: e.target.value,
+                }))
+              }
+            />
+          </div>
         </div>
       </section>
 

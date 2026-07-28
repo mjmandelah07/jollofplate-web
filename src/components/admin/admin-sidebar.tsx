@@ -11,6 +11,7 @@ import {
   Settings,
   ShoppingBag,
   Tags,
+  Truck,
   UtensilsCrossed,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
@@ -29,6 +30,7 @@ const links = [
     label: "Shopping requests",
     icon: ListChecks,
   },
+  { href: "/admin/terminal", label: "Terminal", icon: Truck },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
