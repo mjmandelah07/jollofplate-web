@@ -29,6 +29,8 @@ export type DeliveryAddressInput = {
   line2?: string;
   city: string;
   state?: string;
+  zip?: string;
+  country?: string;
   landmark?: string;
   phone?: string;
 };
@@ -47,6 +49,14 @@ export type Order = {
   deliveryState?: string | null;
   deliveryLandmark?: string | null;
   deliveryPhone?: string | null;
+  shippingRateId?: string | null;
+  terminalRateId?: string | null;
+  shippingCarrierName?: string | null;
+  shippingAmount?: number | null;
+  shippingDeliveryTime?: string | null;
+  shipmentId?: string | null;
+  terminalShipmentId?: string | null;
+  shipmentBookedAt?: string | null;
   paidAt?: string | null;
   createdAt: string;
   updatedAt?: string;

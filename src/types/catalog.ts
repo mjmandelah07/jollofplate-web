@@ -40,6 +40,8 @@ export type Meal = {
   categoryId: string;
   images: string[];
   preparationTime: number;
+  /** kg per unit for Terminal shipping; null → API default 0.5 */
+  weightKg?: number | null;
   featured: boolean;
   bestSeller: boolean;
   available: boolean;
@@ -58,6 +60,7 @@ export type MealInput = {
   categoryId: string;
   images: string[];
   preparationTime: number;
+  weightKg?: number | null;
   featured: boolean;
   bestSeller: boolean;
   available: boolean;

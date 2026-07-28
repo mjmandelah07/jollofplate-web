@@ -42,6 +42,16 @@ export function formatPhoneForWhatsApp(phone: string) {
   return `${NIGERIA_DIAL_CODE}${local.replace(/^0/, "")}`;
 }
 
+/**
+ * E.164 for Terminal Africa / carriers (e.g. +2348012345678).
+ * Matches country NG when pickup/delivery country is Nigeria.
+ */
+export function toNigeriaE164Phone(phone: string) {
+  const digits = formatPhoneForWhatsApp(phone);
+  if (!digits) return "";
+  return digits.startsWith("+") ? digits : `+${digits}`;
+}
+
 export const WEEKDAY_LABELS: Record<string, string> = {
   mon: "Mon",
   tue: "Tue",

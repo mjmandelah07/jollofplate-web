@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Truck } from "lucide-react";
 import { OrderStatusBadge } from "@/components/admin/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
+  bookOrderShipment,
   getAdminOrder,
   removeOrderItem,
   updateOrderStatus,
@@ -33,6 +34,7 @@ export function OrderDetailManager() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [bookingShipment, setBookingShipment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<string | null>(null);
 
   const loadOrder = useCallback(async () => {
@@ -81,6 +83,29 @@ export function OrderDetailManager() {
       );
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function bookShipment() {
+    if (!order) return;
+    const token = requireToken();
+    if (!token) return;
+
+    setBookingShipment(true);
+    try {
+      const updated = await bookOrderShipment(token, order.id);
+      setOrder({
+        ...updated,
+        items: Array.isArray(updated.items) ? updated.items : order.items,
+      });
+      toast.success("Shipment booked with Terminal");
+    } catch (error) {
+      if (handleAuthError(error)) return;
+      toast.error(
+        error instanceof ApiError ? error.message : "Could not book shipment",
+      );
+    } finally {
+      setBookingShipment(false);
     }
   }
 
@@ -152,6 +177,12 @@ export function OrderDetailManager() {
     .filter(Boolean)
     .join(" ");
   const pending = order.status === "PENDING";
+  const canBookShipment =
+    order.status === "PAID" &&
+    Boolean(order.shippingRateId || order.terminalRateId) &&
+    !order.shipmentId &&
+    !order.terminalShipmentId &&
+    !order.shipmentBookedAt;
 
   return (
     <div className="space-y-6">
@@ -178,23 +209,38 @@ export function OrderDetailManager() {
           </p>
         </div>
 
-        {pending ? (
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
+          {pending ? (
+            <>
+              <Button
+                disabled={actionLoading}
+                onClick={() => void markStatus("PAID")}
+              >
+                Mark paid
+              </Button>
+              <Button
+                variant="outline"
+                disabled={actionLoading}
+                onClick={() => void markStatus("CANCELLED")}
+              >
+                Mark cancelled
+              </Button>
+            </>
+          ) : null}
+          {canBookShipment ? (
             <Button
-              disabled={actionLoading}
-              onClick={() => void markStatus("PAID")}
+              disabled={bookingShipment || actionLoading}
+              onClick={() => void bookShipment()}
             >
-              Mark paid
+              {bookingShipment ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Truck className="size-4" />
+              )}
+              Book shipment
             </Button>
-            <Button
-              variant="outline"
-              disabled={actionLoading}
-              onClick={() => void markStatus("CANCELLED")}
-            >
-              Mark cancelled
-            </Button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -225,6 +271,32 @@ export function OrderDetailManager() {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}
+                </dd>
+              </div>
+            ) : null}
+            {order.shippingRateId || order.terminalRateId ? (
+              <div>
+                <dt className="text-muted-foreground">Shipping</dt>
+                <dd>
+                  {order.shippingCarrierName || "Terminal rate"}
+                  {typeof order.shippingAmount === "number"
+                    ? ` · ${formatNaira(order.shippingAmount)}`
+                    : ""}
+                  {order.shippingDeliveryTime
+                    ? ` · ${order.shippingDeliveryTime}`
+                    : ""}
+                </dd>
+              </div>
+            ) : null}
+            {order.shipmentId ||
+            order.terminalShipmentId ||
+            order.shipmentBookedAt ? (
+              <div>
+                <dt className="text-muted-foreground">Shipment</dt>
+                <dd>
+                  {order.terminalShipmentId || order.shipmentId
+                    ? `Booked · ${order.terminalShipmentId || order.shipmentId}`
+                    : "Booked"}
                 </dd>
               </div>
             ) : null}

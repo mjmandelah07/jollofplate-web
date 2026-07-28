@@ -47,6 +47,7 @@ type FormState = {
   price: string;
   discountPrice: string;
   preparationTime: string;
+  weightKg: string;
   ingredients: string;
   images: string[];
   extras: MealExtra[];
@@ -62,6 +63,7 @@ const emptyForm: FormState = {
   price: "",
   discountPrice: "",
   preparationTime: "30",
+  weightKg: "",
   ingredients: "",
   images: [],
   extras: [],
@@ -82,6 +84,10 @@ function toForm(meal?: Meal | null): FormState {
         ? ""
         : String(meal.discountPrice),
     preparationTime: String(meal.preparationTime ?? 30),
+    weightKg:
+      meal.weightKg === null || meal.weightKg === undefined
+        ? ""
+        : String(meal.weightKg),
     ingredients: meal.ingredients ?? "",
     images: meal.images ?? [],
     extras: meal.extras ?? [],
@@ -193,6 +199,10 @@ export function MealFormDialog({
           : Math.round(Number(form.discountPrice)),
       images: form.images,
       preparationTime: Math.max(1, Math.round(Number(form.preparationTime) || 1)),
+      weightKg:
+        form.weightKg.trim() === ""
+          ? null
+          : Math.max(0.01, Number(form.weightKg) || 0.5),
       ingredients: form.ingredients.trim() || null,
       extras: form.extras
         .filter((extra) => extra.name.trim())
@@ -301,6 +311,27 @@ export function MealFormDialog({
                   }))
                 }
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="meal-weight">Shipping weight (kg)</Label>
+              <Input
+                id="meal-weight"
+                type="number"
+                min={0.01}
+                step="0.1"
+                value={form.weightKg}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    weightKg: e.target.value,
+                  }))
+                }
+                placeholder="0.5"
+              />
+              <p className="text-xs text-muted-foreground">
+                Per unit for Terminal rates. Empty uses 0.5 kg.
+              </p>
             </div>
 
             <div className="space-y-2">

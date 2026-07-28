@@ -17,6 +17,7 @@ import {
   DEFAULT_DELIVERY_ADDRESS,
   getSavedDeliveryAddress,
 } from "@/lib/cart";
+import { toNigeriaE164Phone } from "@/lib/format";
 import {
   clearSourcingCart,
   clearSourcingNotes,
@@ -82,7 +83,9 @@ export function SourcingCheckoutManager() {
           city: address.city.trim(),
           state: address.state?.trim() || undefined,
           landmark: address.landmark?.trim() || undefined,
-          phone: address.phone?.trim() || undefined,
+          phone: address.phone?.trim()
+            ? toNigeriaE164Phone(address.phone)
+            : undefined,
         },
         notes: notes.trim() || undefined,
       });

@@ -89,3 +89,10 @@ export function removeOrderItem(token: string, orderId: string, itemId: string) 
     },
   );
 }
+
+export function bookOrderShipment(token: string, id: string) {
+  return apiFetch<Order>(`/admin/orders/${id}/book-shipment`, {
+    method: "POST",
+    token,
+  });
+}
