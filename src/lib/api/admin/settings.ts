@@ -20,6 +20,9 @@ export type AdminSettingsInput = Partial<{
   pickupEmail: string;
   pickupFirstName: string;
   pickupLastName: string;
+  terminalPackagingIdLight: string;
+  terminalPackagingIdStandard: string;
+  terminalPackagingIdLarge: string;
 }>;
 
 export function getAdminSettings(token: string) {

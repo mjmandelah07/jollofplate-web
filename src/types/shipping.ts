@@ -16,6 +16,8 @@ export type ShippingRatesResponse = {
   currency: string;
   mode?: string;
   fallbackDeliveryFee: number;
+  totalWeightKg?: number;
+  packagingId?: string | null;
   rates: ShippingRate[];
 };
 
@@ -25,21 +27,34 @@ export type TerminalStatus = {
   baseUrl?: string | null;
   ok: boolean;
   message?: string | null;
+  publicKeyPrefix?: string | null;
   carriersSample?: number;
 };
 
 export type TerminalCarrier = {
-  id?: string;
+  carrier_id?: string;
   name?: string;
   slug?: string;
   logo?: string | null;
   active?: boolean;
-  [key: string]: unknown;
+  domestic?: boolean;
+  international?: boolean;
+  regional?: boolean;
+  pickup_available?: boolean;
+  available_countries?: string[];
+  available_countries_local?: string[];
 };
 
 export type TerminalPackaging = {
   id?: string;
+  packaging_id?: string;
   name?: string;
   type?: string;
-  [key: string]: unknown;
+  default?: boolean;
+  height?: number;
+  length?: number;
+  width?: number;
+  weight?: number;
+  size_unit?: string;
+  weight_unit?: string;
 };

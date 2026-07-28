@@ -7,14 +7,15 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, MessageCircle, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { CheckoutDeliverySection } from "@/components/checkout/checkout-delivery-section";
-import { CheckoutShippingRates } from "@/components/checkout/checkout-shipping-rates";
+// Terminal Africa live rates — disabled for customers (delivery times not suitable for food yet).
+// import { CheckoutShippingRates } from "@/components/checkout/checkout-shipping-rates";
 import { OrderStatusBadge } from "@/components/admin/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/hooks/use-cart";
 import { createOrder, type CreatedOrder } from "@/lib/api/orders";
-import { getShippingRates } from "@/lib/api/shipping";
+// import { getShippingRates } from "@/lib/api/shipping";
 import { ApiError } from "@/lib/api/client";
 import {
   clearCustomerSession,
@@ -30,13 +31,13 @@ import {
   saveCartNotes,
   saveDeliveryAddress,
 } from "@/lib/cart";
-import { formatNaira, toNigeriaLocalPhone } from "@/lib/format";
+import { formatNaira, toNigeriaE164Phone } from "@/lib/format";
 import {
   buildWhatsAppMessage,
   buildWhatsAppUrl,
 } from "@/lib/whatsapp-order";
 import type { DeliveryAddressInput } from "@/types/admin";
-import type { ShippingRate } from "@/types/shipping";
+// import type { ShippingRate } from "@/types/shipping";
 
 const PLACED_ORDER_KEY = "jollofplate.lastPlacedOrder";
 
@@ -95,13 +96,16 @@ export function CheckoutManager({
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState<StoredPlacedOrder | null>(null);
 
-  const [rates, setRates] = useState<ShippingRate[]>([]);
-  const [ratesLoading, setRatesLoading] = useState(false);
-  const [ratesError, setRatesError] = useState<string | null>(null);
-  const [ratesFallbackFee, setRatesFallbackFee] = useState(deliveryFee);
-  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
-  const [ratesTick, setRatesTick] = useState(0);
+  // Terminal Africa live rates — disabled for customers (delivery times not suitable for food yet).
+  // const [rates, setRates] = useState<ShippingRate[]>([]);
+  // const [ratesLoading, setRatesLoading] = useState(false);
+  // const [ratesError, setRatesError] = useState<string | null>(null);
+  // const [ratesFallbackFee, setRatesFallbackFee] = useState(deliveryFee);
+  // const [totalWeightKg, setTotalWeightKg] = useState<number | null>(null);
+  // const [packagingId, setPackagingId] = useState<string | null>(null);
+  // const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  // const [usingFallback, setUsingFallback] = useState(false);
+  // const [ratesTick, setRatesTick] = useState(0);
 
   useEffect(() => {
     setNotes(getCartNotes());
@@ -123,10 +127,8 @@ export function CheckoutManager({
     setPlaced(readPlacedOrder());
   }, [lines.length, ready]);
 
-  useEffect(() => {
-    setRatesFallbackFee(deliveryFee);
-  }, [deliveryFee]);
-
+  /*
+  // Terminal Africa: fetch live carrier rates when address is ready.
   useEffect(() => {
     const token = getCustomerToken();
     if (!token || !ready || lines.length === 0 || !addressReady(address)) {
@@ -156,7 +158,7 @@ export function CheckoutManager({
                 ...(address.zip?.trim() ? { zip: address.zip.trim() } : {}),
                 country: address.country?.trim() || "NG",
                 ...(address.phone?.trim()
-                  ? { phone: toNigeriaLocalPhone(address.phone) }
+                  ? { phone: toNigeriaE164Phone(address.phone) }
                   : {}),
               },
               items: lines.map((line) => ({
@@ -176,6 +178,10 @@ export function CheckoutManager({
               ? data.fallbackDeliveryFee
               : deliveryFee,
           );
+          setTotalWeightKg(
+            typeof data.totalWeightKg === "number" ? data.totalWeightKg : null,
+          );
+          setPackagingId(data.packagingId || null);
 
           if (nextRates.length > 0) {
             setSelectedRateId((prev) =>
@@ -214,18 +220,9 @@ export function CheckoutManager({
       window.clearTimeout(timer);
     };
   }, [address, deliveryFee, lines, ratesTick, ready, router]);
+  */
 
-  const selectedRate = useMemo(
-    () => rates.find((rate) => rate.rateId === selectedRateId) || null,
-    [rates, selectedRateId],
-  );
-
-  const effectiveDeliveryFee = usingFallback
-    ? Math.max(0, ratesFallbackFee)
-    : selectedRate
-      ? Math.max(0, selectedRate.amount)
-      : Math.max(0, ratesFallbackFee);
-
+  const effectiveDeliveryFee = Math.max(0, deliveryFee);
   const estimatedTotal = subtotal + effectiveDeliveryFee;
   const itemCount = useMemo(
     () => lines.reduce((sum, line) => sum + line.quantity, 0),
@@ -235,8 +232,8 @@ export function CheckoutManager({
   function updateAddress(next: DeliveryAddressInput) {
     setAddress(next);
     saveDeliveryAddress(next);
-    setSelectedRateId(null);
-    setUsingFallback(false);
+    // setSelectedRateId(null);
+    // setUsingFallback(false);
   }
 
   function validateAddress() {
@@ -267,10 +264,11 @@ export function CheckoutManager({
     }
     if (!validateAddress()) return;
 
-    if (!usingFallback && !selectedRateId) {
-      toast.error("Pick a delivery option");
-      return;
-    }
+    // Terminal Africa: require a live rate when enabled.
+    // if (!usingFallback && !selectedRateId) {
+    //   toast.error("Pick a delivery option");
+    //   return;
+    // }
 
     const deliveryAddress: DeliveryAddressInput = {
       line1: address.line1.trim(),
@@ -283,7 +281,7 @@ export function CheckoutManager({
         ? { landmark: address.landmark.trim() }
         : {}),
       ...(address.phone?.trim()
-        ? { phone: toNigeriaLocalPhone(address.phone) }
+        ? { phone: toNigeriaE164Phone(address.phone) }
         : {}),
     };
 
@@ -299,9 +297,10 @@ export function CheckoutManager({
         })),
         deliveryAddress,
         ...(notes.trim() ? { notes: notes.trim() } : {}),
-        ...(!usingFallback && selectedRateId
-          ? { shippingRateId: selectedRateId }
-          : {}),
+        // Terminal Africa: attach selected rate when re-enabled.
+        // ...(!usingFallback && selectedRateId
+        //   ? { shippingRateId: selectedRateId }
+        //   : {}),
       });
 
       const whatsappNumber =
@@ -526,6 +525,7 @@ export function CheckoutManager({
           disabled={placing}
         />
 
+        {/* Terminal Africa live rates — disabled for customers (delivery times not suitable for food yet).
         {addressReady(address) ? (
           <CheckoutShippingRates
             rates={rates}
@@ -534,6 +534,8 @@ export function CheckoutManager({
             selectedRateId={selectedRateId}
             fallbackDeliveryFee={Math.max(0, ratesFallbackFee)}
             usingFallback={usingFallback}
+            totalWeightKg={totalWeightKg}
+            packagingId={packagingId}
             disabled={placing}
             onSelect={(rateId) => {
               setSelectedRateId(rateId);
@@ -555,6 +557,23 @@ export function CheckoutManager({
             </p>
           </section>
         )}
+        */}
+
+        <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(34,34,34,0.4)]">
+          <h2 className="font-heading text-lg font-semibold">Delivery</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Delivery fee from kitchen settings. We’ll confirm timing on
+            WhatsApp after you place the order.
+          </p>
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-border/80 bg-muted/30 px-4 py-3">
+            <span className="text-sm font-medium text-foreground">
+              Delivery fee
+            </span>
+            <span className="font-heading text-lg font-semibold text-primary">
+              {formatNaira(effectiveDeliveryFee)}
+            </span>
+          </div>
+        </section>
 
         <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(34,34,34,0.4)]">
           <div className="space-y-2">
@@ -587,12 +606,7 @@ export function CheckoutManager({
             <span className="font-medium">{formatNaira(subtotal)}</span>
           </div>
           <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">
-              Delivery
-              {!usingFallback && selectedRate
-                ? ` · ${selectedRate.carrierName}`
-                : ""}
-            </span>
+            <span className="text-muted-foreground">Delivery</span>
             <span className="font-medium">
               {formatNaira(effectiveDeliveryFee)}
             </span>
@@ -605,15 +619,15 @@ export function CheckoutManager({
           </div>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          The server confirms prices and the selected delivery rate when your
-          order is placed.
+          The server confirms prices when your order is placed. Delivery timing
+          is arranged on WhatsApp.
         </p>
 
         <Button
           type="button"
           size="lg"
           className="mt-6 h-14 w-full rounded-2xl text-base font-semibold"
-          disabled={placing || ratesLoading}
+          disabled={placing}
           onClick={() => void placeOrder()}
         >
           {placing ? (

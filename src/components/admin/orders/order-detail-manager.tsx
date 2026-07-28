@@ -179,8 +179,9 @@ export function OrderDetailManager() {
   const pending = order.status === "PENDING";
   const canBookShipment =
     order.status === "PAID" &&
-    Boolean(order.shippingRateId) &&
+    Boolean(order.shippingRateId || order.terminalRateId) &&
     !order.shipmentId &&
+    !order.terminalShipmentId &&
     !order.shipmentBookedAt;
 
   return (
@@ -273,7 +274,7 @@ export function OrderDetailManager() {
                 </dd>
               </div>
             ) : null}
-            {order.shippingRateId ? (
+            {order.shippingRateId || order.terminalRateId ? (
               <div>
                 <dt className="text-muted-foreground">Shipping</dt>
                 <dd>
@@ -281,15 +282,20 @@ export function OrderDetailManager() {
                   {typeof order.shippingAmount === "number"
                     ? ` · ${formatNaira(order.shippingAmount)}`
                     : ""}
+                  {order.shippingDeliveryTime
+                    ? ` · ${order.shippingDeliveryTime}`
+                    : ""}
                 </dd>
               </div>
             ) : null}
-            {order.shipmentId || order.shipmentBookedAt ? (
+            {order.shipmentId ||
+            order.terminalShipmentId ||
+            order.shipmentBookedAt ? (
               <div>
                 <dt className="text-muted-foreground">Shipment</dt>
                 <dd>
-                  {order.shipmentId
-                    ? `Booked · ${order.shipmentId}`
+                  {order.terminalShipmentId || order.shipmentId
+                    ? `Booked · ${order.terminalShipmentId || order.shipmentId}`
                     : "Booked"}
                 </dd>
               </div>

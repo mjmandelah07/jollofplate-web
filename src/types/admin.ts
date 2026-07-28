@@ -50,9 +50,12 @@ export type Order = {
   deliveryLandmark?: string | null;
   deliveryPhone?: string | null;
   shippingRateId?: string | null;
+  terminalRateId?: string | null;
   shippingCarrierName?: string | null;
   shippingAmount?: number | null;
+  shippingDeliveryTime?: string | null;
   shipmentId?: string | null;
+  terminalShipmentId?: string | null;
   shipmentBookedAt?: string | null;
   paidAt?: string | null;
   createdAt: string;

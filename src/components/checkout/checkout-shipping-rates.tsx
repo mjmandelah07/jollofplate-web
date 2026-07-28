@@ -6,6 +6,14 @@ import { formatNaira } from "@/lib/format";
 import type { ShippingRate } from "@/types/shipping";
 import { cn } from "@/lib/utils";
 
+function friendlyRatesError(message: string | null) {
+  if (!message) return null;
+  if (/pickupLine1|pickupCity|pickupState|pickup address/i.test(message)) {
+    return "Kitchen pickup address isn’t set yet. Ask admin to add it in Settings, or continue with delivery from the listed amount.";
+  }
+  return message;
+}
+
 export function CheckoutShippingRates({
   rates,
   loading,
@@ -13,6 +21,8 @@ export function CheckoutShippingRates({
   selectedRateId,
   fallbackDeliveryFee,
   usingFallback,
+  totalWeightKg,
+  packagingId,
   onSelect,
   onRetry,
   onUseFallback,
@@ -24,19 +34,31 @@ export function CheckoutShippingRates({
   selectedRateId: string | null;
   fallbackDeliveryFee: number;
   usingFallback: boolean;
+  totalWeightKg?: number | null;
+  packagingId?: string | null;
   onSelect: (rateId: string) => void;
   onRetry: () => void;
   onUseFallback: () => void;
   disabled?: boolean;
 }) {
+  const displayError = friendlyRatesError(error);
+  const fromFee = formatNaira(fallbackDeliveryFee);
+
   return (
     <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(34,34,34,0.4)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-heading text-lg font-semibold">Delivery option</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Live carrier rates via Terminal Africa. Or use the fixed delivery
-            fee.
+            Live carrier rates via Terminal Africa. Delivery from {fromFee} if
+            rates aren’t available.
+            {typeof totalWeightKg === "number" ? (
+              <>
+                {" "}
+                Est. weight {totalWeightKg.toFixed(1)} kg
+                {packagingId ? ` · pack ${packagingId}` : ""}.
+              </>
+            ) : null}
           </p>
         </div>
         {loading ? (
@@ -48,9 +70,9 @@ export function CheckoutShippingRates({
       </div>
 
       <div className="mt-5 space-y-2">
-        {error ? (
+        {displayError ? (
           <div className="rounded-2xl border border-dashed border-border bg-muted/30 px-4 py-3 text-sm">
-            <p className="text-muted-foreground">{error}</p>
+            <p className="text-muted-foreground">{displayError}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -69,16 +91,16 @@ export function CheckoutShippingRates({
                 disabled={disabled}
                 onClick={onUseFallback}
               >
-                Use fixed fee ({formatNaira(fallbackDeliveryFee)})
+                Continue from {fromFee}
               </Button>
             </div>
           </div>
         ) : null}
 
-        {!error && !loading && rates.length === 0 ? (
+        {!displayError && !loading && rates.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-            No live rates right now. You can continue with the fixed delivery
-            fee ({formatNaira(fallbackDeliveryFee)}).
+            No live rates right now. You can continue with delivery from{" "}
+            {fromFee}.
             <div className="mt-3">
               <Button
                 type="button"
@@ -87,7 +109,7 @@ export function CheckoutShippingRates({
                 disabled={disabled}
                 onClick={onUseFallback}
               >
-                Use fixed fee
+                Continue from {fromFee}
               </Button>
             </div>
           </div>
@@ -156,14 +178,14 @@ export function CheckoutShippingRates({
           <span className="min-w-0 flex-1">
             <span className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="font-medium text-foreground">
-                Fixed delivery fee
+                Delivery from
               </span>
               <span className="font-heading font-semibold text-primary">
-                {formatNaira(fallbackDeliveryFee)}
+                {fromFee}
               </span>
             </span>
             <span className="mt-1 block text-xs text-muted-foreground">
-              Restaurant default — no Terminal booking later
+              When live carrier rates aren’t available
             </span>
           </span>
         </button>

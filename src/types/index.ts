@@ -44,6 +44,9 @@ export type RestaurantSettings = {
   pickupEmail?: string | null;
   pickupFirstName?: string | null;
   pickupLastName?: string | null;
+  terminalPackagingIdLight?: string | null;
+  terminalPackagingIdStandard?: string | null;
+  terminalPackagingIdLarge?: string | null;
   createdAt: string;
   updatedAt: string;
 };
